@@ -204,7 +204,7 @@ export class APIKeys {
     return this.http.get("/v1/api-keys");
   }
 
-  /** The returned `key` is shown once — store it immediately. */
+  /** The returned `api_key` is shown once — store it immediately. */
   create(options?: RequestOptions): Promise<APIKey> {
     return this.http.post("/v1/api-keys", undefined, options);
   }

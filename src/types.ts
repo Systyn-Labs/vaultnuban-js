@@ -177,7 +177,7 @@ export interface APIKey {
   created_at: string;
   revoked_at?: string | null;
   /** Present only in the create response — store it; it is never shown again. */
-  key?: string;
+  api_key?: string;
 }
 
 // ── Webhook relay event (what VaultNUBAN POSTs to your endpoint) ──────────────
