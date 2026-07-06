@@ -245,6 +245,15 @@ export class MFA {
   regenerateRecoveryCodes(params: VerifyMFAParams): Promise<RegenerateRecoveryCodesResponse> {
     return this.http.post("/v1/mfa/recovery-codes/regenerate", params);
   }
+
+  /**
+   * Turn off MFA for the logged-in user. Requires a live TOTP code or a
+   * recovery code to prove possession. Once disabled, any action gated by
+   * step-up MFA is blocked until the user re-enrolls via setup()/enable().
+   */
+  disable(params: VerifyMFAParams): Promise<{ enabled: boolean }> {
+    return this.http.post("/v1/mfa/disable", params);
+  }
 }
 
 export class Audit {
