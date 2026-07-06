@@ -10,13 +10,18 @@ import type {
   CreateWithdrawalParams,
   Customer,
   ListParams,
+  MFASetupResponse,
+  MFAStatus,
+  MFAVerifyResponse,
   Page,
   PayeeResolution,
   ProvisionVAParams,
+  RegenerateRecoveryCodesResponse,
   ResolveSuspenseParams,
   Statement,
   SuspenseItem,
   Transaction,
+  VerifyMFAParams,
   VirtualAccount,
   VirtualAccountListItem,
   WebhookDelivery,
@@ -206,6 +211,39 @@ export class APIKeys {
 
   revoke(keyId: string, options?: RequestOptions): Promise<void> {
     return this.http.delete(`/v1/api-keys/${keyId}`, options);
+  }
+}
+
+export class MFA {
+  constructor(private readonly http: HttpClient) {}
+
+  /** Current enrollment status for the logged-in user. */
+  status(): Promise<MFAStatus> {
+    return this.http.get("/v1/mfa/status");
+  }
+
+  /** Begin enrollment: generates a pending TOTP secret and 10 recovery codes. */
+  setup(): Promise<MFASetupResponse> {
+    return this.http.post("/v1/mfa/setup");
+  }
+
+  /** Confirm enrollment with a live TOTP code. */
+  enable(params: VerifyMFAParams): Promise<{ enabled: boolean }> {
+    return this.http.post("/v1/mfa/enable", params);
+  }
+
+  /**
+   * Verify a live TOTP code or recovery code and mint a short-lived step-up
+   * token. Pass the returned `step_up_token` as `options.stepUpToken` on the
+   * mutating call it authorizes.
+   */
+  verify(params: VerifyMFAParams): Promise<MFAVerifyResponse> {
+    return this.http.post("/v1/mfa/verify", params);
+  }
+
+  /** Requires a live TOTP code (not a recovery code) to prevent chain-minting. */
+  regenerateRecoveryCodes(params: VerifyMFAParams): Promise<RegenerateRecoveryCodesResponse> {
+    return this.http.post("/v1/mfa/recovery-codes/regenerate", params);
   }
 }
 

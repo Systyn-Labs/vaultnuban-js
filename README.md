@@ -17,7 +17,7 @@ const vn = new VaultNuban({ apiKey: process.env.VAULTNUBAN_API_KEY! });
 const customer = await vn.customers.create({
   external_ref: "user_12345",
   display_name: "Amaka Obi",
-  bvn: "22345678901",
+  identity: { bvn_masked: "****78901", kyc_tier: 1 },
 });
 const va = await vn.virtualAccounts.provision(customer.id);
 console.log(`Fund ${va.nuban} (${va.bank_name})`);

@@ -4,6 +4,12 @@ import type { Page } from "./types.js";
 export interface ClientOptions {
   /** Tenant API key (`sk_…`). */
   apiKey: string;
+  /**
+   * Per-user session token minted at login (distinct from the shared tenant
+   * API key). Required for MFA-gated actions to identify which human is
+   * acting; sent as `X-User-Session` on every request when present.
+   */
+  userSessionToken?: string;
   /** API origin. Defaults to https://vaultnuban.onrender.com */
   baseUrl?: string;
   /** Per-request timeout in ms. Default 30_000. */
@@ -20,6 +26,11 @@ export interface RequestOptions {
    * one is generated automatically so retries are always safe.
    */
   idempotencyKey?: string;
+  /**
+   * Single-use step-up token from `mfa.verify()`, required on Nomba-mutating
+   * actions (provisioning, withdrawals, etc). Sent as `X-Step-Up-Token`.
+   */
+  stepUpToken?: string;
   /** Override the client-level timeout for this call. */
   timeoutMs?: number;
   signal?: AbortSignal;
@@ -30,6 +41,7 @@ const MUTATING = new Set(["POST", "PATCH", "PUT", "DELETE"]);
 /** Low-level HTTP core shared by all resource groups. */
 export class HttpClient {
   private readonly apiKey: string;
+  private readonly userSessionToken?: string;
   private readonly baseUrl: string;
   private readonly timeoutMs: number;
   private readonly maxRetries: number;
@@ -38,6 +50,7 @@ export class HttpClient {
   constructor(opts: ClientOptions) {
     if (!opts.apiKey) throw new Error("vaultnuban: apiKey is required");
     this.apiKey = opts.apiKey;
+    this.userSessionToken = opts.userSessionToken;
     this.baseUrl = (opts.baseUrl ?? "https://vaultnuban.onrender.com").replace(/\/+$/, "");
     this.timeoutMs = opts.timeoutMs ?? 30_000;
     this.maxRetries = opts.maxRetries ?? 2;
@@ -64,6 +77,8 @@ export class HttpClient {
       Authorization: `Bearer ${this.apiKey}`,
       Accept: "application/json",
     };
+    if (this.userSessionToken) headers["X-User-Session"] = this.userSessionToken;
+    if (opts.options?.stepUpToken) headers["X-Step-Up-Token"] = opts.options.stepUpToken;
     if (opts.body !== undefined) headers["Content-Type"] = "application/json";
     if (MUTATING.has(method)) {
       // globalThis.crypto is available in Node ≥19, all browsers, and workers;

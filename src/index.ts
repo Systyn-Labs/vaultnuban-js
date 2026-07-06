@@ -4,6 +4,7 @@ import {
   Audit,
   Collections,
   Customers,
+  MFA,
   Suspense,
   Transactions,
   VirtualAccounts,
@@ -22,7 +23,7 @@ import {
  * const customer = await vn.customers.create({
  *   external_ref: "user_12345",
  *   display_name: "Amaka Obi",
- *   bvn: "22345678901",
+ *   identity: { bvn_masked: "****78901", kyc_tier: 1 },
  * });
  * const va = await vn.virtualAccounts.provision(customer.id);
  * console.log(va.nuban, va.bank_name);
@@ -40,6 +41,7 @@ export class VaultNuban {
   readonly webhooks: Webhooks;
   readonly apiKeys: APIKeys;
   readonly audit: Audit;
+  readonly mfa: MFA;
 
   constructor(options: ClientOptions) {
     this.http = new HttpClient(options);
@@ -52,6 +54,7 @@ export class VaultNuban {
     this.webhooks = new Webhooks(this.http);
     this.apiKeys = new APIKeys(this.http);
     this.audit = new Audit(this.http);
+    this.mfa = new MFA(this.http);
   }
 }
 

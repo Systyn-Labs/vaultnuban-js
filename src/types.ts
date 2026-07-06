@@ -203,8 +203,12 @@ export interface RelayEvent {
 export interface CreateCustomerParams {
   external_ref: string;
   display_name: string;
-  bvn?: string;
-  nin?: string;
+  /** At least one of `bvn_masked` or `nin_masked` is required, alongside `kyc_tier`. */
+  identity: {
+    bvn_masked?: string;
+    nin_masked?: string;
+    kyc_tier: 1 | 2 | 3;
+  };
 }
 
 export interface ProvisionVAParams {
@@ -238,6 +242,35 @@ export interface CreateWebhookEndpointParams {
   url: string;
   /** Plaintext signing secret; used to verify X-VaultNUBAN-Signature */
   secret: string;
+}
+
+// ── Mandatory MFA / step-up authorization ─────────────────────────────────────
+
+export interface MFASetupResponse {
+  /** Base32 TOTP secret; show as a manual-entry fallback alongside the QR code. */
+  secret: string;
+  otpauth_url: string;
+  /** Shown once — the user must save these now. */
+  recovery_codes: string[];
+}
+
+export interface MFAStatus {
+  enabled: boolean;
+  recovery_codes_remaining: number;
+}
+
+export interface VerifyMFAParams {
+  /** A live 6-digit TOTP code, or an unused recovery code (XXXX-XXXX). */
+  code: string;
+}
+
+export interface MFAVerifyResponse {
+  step_up_token: string;
+  expires_at: string;
+}
+
+export interface RegenerateRecoveryCodesResponse {
+  recovery_codes: string[];
 }
 
 // ── List envelopes ────────────────────────────────────────────────────────────
